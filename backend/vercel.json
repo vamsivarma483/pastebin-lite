@@ -1,0 +1,9 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "NODE_ENV": "production",
+    "TEST_MODE": "0"
+  }
+}

@@ -175,20 +175,76 @@ curl -X GET http://localhost:3001/api/pastes/paste_id \
 
 ## Deployment
 
-### Deploy on Vercel
+### Deploy on Vercel (Recommended)
 
-1. Push to GitHub
-2. Import the repository in Vercel
-3. Split into two projects:
-   - **Frontend** from `/frontend` folder
-   - **Backend** from `/backend` folder (using serverless functions or Docker)
-4. Set environment variables in each project
-5. Deploy!
+This monorepo is set up for easy deployment on Vercel with Vercel Postgres as the database.
 
-For the backend on Vercel, you'll need to:
-- Use Vercel's serverless functions or Docker
-- Configure PostgreSQL connection string from a managed database
-- Set `FRONTEND_URL` to your frontend domain
+#### Prerequisites
+1. Create a GitHub repository and push this code
+2. Create a Vercel account at https://vercel.com
+3. Create a Vercel Postgres database
+
+#### Step-by-Step Deployment
+
+**1. Create Vercel Postgres Database**
+- Go to https://vercel.com/docs/storage/vercel-postgres
+- Create a new Postgres database in Vercel dashboard
+- Copy the `POSTGRES_URL` connection string
+
+**2. Deploy Frontend**
+- Go to https://vercel.com/new
+- Import your GitHub repository
+- Select the `/frontend` folder as the root directory
+- Add environment variable: `NEXT_PUBLIC_API_URL` = (backend API URL, set after backend deployment)
+- Deploy
+
+**3. Deploy Backend**
+- Go to https://vercel.com/new
+- Import your GitHub repository again
+- Select the `/backend` folder as the root directory
+- Add environment variables:
+  - `DATABASE_URL`: Paste your Vercel Postgres connection string
+  - `NODE_ENV`: `production`
+  - `TEST_MODE`: `0`
+  - `FRONTEND_URL`: Your frontend URL (from step 2)
+- Deploy
+
+**4. Update Frontend Environment Variable**
+- After backend is deployed, go back to frontend project settings
+- Update `NEXT_PUBLIC_API_URL` to your backend URL (e.g., `https://your-backend.vercel.app`)
+- Redeploy frontend
+
+**5. Run Database Migration**
+After backend deployment, you need to run the Prisma migration on Vercel Postgres:
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Link your project
+vercel link
+
+# Run migration in production
+vercel env pull
+npx prisma migrate deploy
+```
+
+Or use the Vercel UI to run a build-time migration by adding this to `backend/package.json`:
+```json
+{
+  "scripts": {
+    "postinstall": "prisma generate && prisma migrate deploy"
+  }
+}
+```
+
+#### Vercel Project Structure
+
+After deployment, you'll have two separate Vercel projects:
+- **pastebin-lite-frontend**: Next.js application
+- **pastebin-lite-backend**: NestJS API
+
+This allows independent scaling and management of frontend and backend.
 
 ## Project Structure
 

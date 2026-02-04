@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "projects": [
+    {
+      "name": "pastebin-lite-frontend",
+      "path": "frontend"
+    },
+    {
+      "name": "pastebin-lite-backend",
+      "path": "backend"
+    }
+  ]
+}
