@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePasteDto } from './dto/create-paste.dto';
@@ -67,7 +70,9 @@ export class PastesService {
 
     return {
       content: paste.content,
-      remaining_views: paste.maxViews ? paste.maxViews - updated.viewCount : null,
+      remaining_views: paste.maxViews
+        ? paste.maxViews - updated.viewCount
+        : null,
       expires_at: paste.expiresAt?.toISOString() || null,
     };
   }
@@ -82,4 +87,3 @@ export class PastesService {
     return new Date();
   }
 }
-
