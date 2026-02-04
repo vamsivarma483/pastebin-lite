@@ -1,7 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePasteDto } from './dto/create-paste.dto';
-import { Paste } from '@prisma/client';
 
 @Injectable()
 export class PastesService {
@@ -74,10 +73,10 @@ export class PastesService {
   }
 
   private getTestNow(req?: any): Date {
-    if (process.env.TEST_MODE === '1' && req?.headers) {
+    if (process.env.TEST_MODE === '1' && req && req.headers) {
       const testNowMs = req.headers['x-test-now-ms'];
       if (testNowMs) {
-        return new Date(parseInt(testNowMs, 10));
+        return new Date(parseInt(testNowMs as string, 10));
       }
     }
     return new Date();
