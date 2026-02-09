@@ -30,5 +30,21 @@
     "expiresAt": "2026-02-04T07:31:26.732Z",
     "maxViews": 17,
     "viewCount": 2
+  },
+  "3ptzb": {
+    "id": "3ptzb",
+    "content": "Project \"pastebin-lite\" already exists, please use a new name.",
+    "createdAt": "2026-02-04T09:20:57.020Z",
+    "expiresAt": "2026-02-04T09:21:14.018Z",
+    "maxViews": 3,
+    "viewCount": 2
+  },
+  "x0doci": {
+    "id": "x0doci",
+    "content": "Build a small “Pastebin”‐like application. A user can create a text paste and share a link to view it.",
+    "createdAt": "2026-02-09T07:10:36.679Z",
+    "expiresAt": "2026-02-09T07:10:51.679Z",
+    "maxViews": 6,
+    "viewCount": 3
   }
 }

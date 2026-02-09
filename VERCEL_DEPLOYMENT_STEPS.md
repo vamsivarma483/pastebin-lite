@@ -1,115 +1,132 @@
-# Vercel Deployment Steps
+# Vercel Deployment Guide
 
-Follow these steps to deploy the Pastebin Lite application to Vercel.
+## Prerequisites
+- GitHub account (your repo is already here: https://github.com/vamsivarma483/pastebin-lite)
+- Vercel account (sign up at https://vercel.com)
+- A PostgreSQL database (Vercel Postgres recommended)
 
-## ✅ Pre-deployment Checklist
+## Step 1: Push Latest Changes to GitHub
 
-- [x] Code committed to git
-- [ ] GitHub account created
-- [ ] Vercel account created
-
-## Step 1: Push to GitHub
-
-1. **Create a GitHub repository** at https://github.com/new
-   - Name it `pastebin-lite`
-   - Choose public or private
-   - DO NOT initialize with README, .gitignore, or license
-
-2. **Push your code** (replace `YOUR_USERNAME`):
 ```bash
-cd /Users/vamsivarma/pastebin-lite
-git remote add origin https://github.com/YOUR_USERNAME/pastebin-lite.git
-git branch -M main
-git push -u origin main
+cd /Users/vamsivarma/Pastebin-lite
+git add .
+git commit -m "Add share link functionality"
+git push origin main
 ```
 
-## Step 2: Deploy Backend to Vercel
+## Step 2: Set Up Vercel Postgres Database
 
 1. Go to https://vercel.com/dashboard
-2. Click "Add New..." → "Project"
-3. Select your `pastebin-lite` GitHub repository
-4. **Framework**: Select "Other"
-5. **Root Directory**: `backend`
-6. Click "Deploy"
+2. Click on **Storage** in the left sidebar
+3. Click **Create Database** → **Postgres**
+4. Name it: `pastebin-lite`
+5. Select your region
+6. Click **Create**
+7. Copy the connection string (you'll need this for environment variables)
 
-### Backend Environment Variables
-After deployment, go to project settings and add:
+## Step 3: Deploy Backend
+
+1. Go to https://vercel.com/dashboard
+2. Click **Add New...** → **Project**
+3. Import your GitHub repository: `vamsivarma483/pastebin-lite`
+4. Select **NestJS** as the framework
+5. Configure the project:
+   - **Root Directory**: `backend`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+6. Add environment variables:
+   - `DATABASE_URL`: Paste your Vercel Postgres connection string
+   - `NODE_ENV`: `production`
+   - `TEST_MODE`: `0`
+   - `FRONTEND_URL`: `https://your-frontend-domain.vercel.app` (set after deploying frontend)
+7. Click **Deploy**
+
+## Step 4: Deploy Frontend
+
+1. In your Vercel dashboard, click **Add New...** → **Project** again
+2. Import the same GitHub repository
+3. Select **Next.js** as the framework
+4. Configure the project:
+   - **Root Directory**: `frontend`
+   - **Build Command**: `npm run build`
+5. Add environment variables:
+   - `NEXT_PUBLIC_API_URL`: `https://your-backend-domain.vercel.app/api` (from step 3)
+6. Click **Deploy**
+
+## Step 5: Update Backend Environment Variables
+
+After the frontend is deployed:
+1. Go back to the backend project settings in Vercel
+2. Update `FRONTEND_URL` to your actual frontend URL (e.g., `https://pastebin-lite.vercel.app`)
+3. Click **Save** and **Redeploy**
+
+## Step 6: Run Database Migrations
+
+After the backend is deployed, run Prisma migrations:
+
+```bash
+cd backend
+npx prisma migrate deploy --skip-generate
 ```
-NODE_ENV=production
+
+Or you can use the Vercel CLI:
+
+```bash
+npx vercel env pull .env.production.local
+npx prisma migrate deploy
 ```
 
-**Backend URL will be**: `https://YOUR_BACKEND_NAME.vercel.app`
+## Monitoring & Testing
 
-## Step 3: Deploy Frontend to Vercel
+- Frontend: `https://your-frontend-domain.vercel.app`
+- Backend API: `https://your-backend-domain.vercel.app/api/pastes`
 
-1. In Vercel dashboard, click "Add New..." → "Project"
-2. Select your `pastebin-lite` GitHub repository
-3. **Framework**: "Next.js"
-4. **Root Directory**: `frontend`
-5. **Environment Variables**: Add
+Test creating a paste:
+```bash
+curl -X POST https://your-backend-domain.vercel.app/api/pastes \
+  -H "Content-Type: application/json" \
+  -d '{"content": "Hello Vercel!"}'
 ```
-NEXT_PUBLIC_API_URL=https://YOUR_BACKEND_NAME.vercel.app
-```
-6. Click "Deploy"
-
-**Frontend URL will be**: `https://YOUR_FRONTEND_NAME.vercel.app`
-
-## Step 4: Database (JSON File Storage)
-
-The application currently uses JSON file storage in `/backend/pastes.json` which:
-- ✅ Works on Vercel for small deployments
-- ✅ Requires no external database
-- ❌ Data resets with each deployment
-- ❌ Not suitable for production with multiple instances
-
-### To upgrade to PostgreSQL (Optional):
-
-1. Create Vercel Postgres database at https://vercel.com/dashboard/stores
-2. Get connection string
-3. Update backend `prisma.config.ts` to use PostgreSQL
-4. Run migrations with Prisma
-5. Redeploy backend
-
-## Step 5: Test Deployment
-
-1. Visit your frontend URL: `https://YOUR_FRONTEND_NAME.vercel.app`
-2. Create a paste with:
-   - Content: "Test paste"
-   - Expiry: Set using the time picker (e.g., 1 hour)
-   - Max Views: 5 (optional)
-3. Verify the paste URL opens correctly
-4. Check remaining views and expiry time display
 
 ## Troubleshooting
 
-### "API Connection Refused"
-- Check `NEXT_PUBLIC_API_URL` in frontend environment variables
-- Verify backend deployment is successful
-- Backend URL should be the full domain (e.g., `https://api.vercel.app`)
+### Database Connection Error
+- Ensure the `DATABASE_URL` is correctly set in backend environment variables
+- Check that Vercel Postgres is in the same region as your projects
 
-### "Paste not found"
-- The JSON file storage resets on each deployment
-- This is normal - create a new paste after deployment
-- To persist data, set up PostgreSQL database
+### CORS Issues
+- Add environment variable `CORS_ORIGIN` to backend if needed
 
-### Build fails on Vercel
-- Check build logs in Vercel dashboard
-- Ensure `npm install` succeeds
-- Verify `tsconfig.json` is in backend root
+### Frontend Can't Reach Backend
+- Verify `NEXT_PUBLIC_API_URL` points to the correct backend URL
+- Check CORS headers in NestJS backend
 
-## Monitoring
+## Environment Variables Summary
 
-After deployment:
-1. Monitor Vercel analytics dashboard
-2. Check function duration and memory usage
-3. Set up error alerts in Vercel settings
-4. Enable automatic deployments on git push
+### Backend (Vercel)
+```
+DATABASE_URL=postgresql://...
+NODE_ENV=production
+TEST_MODE=0
+FRONTEND_URL=https://your-frontend-url.vercel.app
+```
 
-## Next Steps
+### Frontend (Vercel)
+```
+NEXT_PUBLIC_API_URL=https://your-backend-url.vercel.app/api
+```
 
-- [ ] Push code to GitHub
-- [ ] Deploy backend to Vercel
-- [ ] Deploy frontend to Vercel
-- [ ] Test the deployed application
-- [ ] Set up PostgreSQL (optional)
-- [ ] Configure custom domain (optional)
+## Auto-Deploy from Git
+
+Both projects are now configured to auto-deploy whenever you push to GitHub main branch!
+
+```bash
+# After making changes locally:
+git add .
+git commit -m "Your changes"
+git push origin main
+
+# Both frontend and backend will automatically deploy to Vercel
+```
+
+Enjoy your deployed Pastebin-lite application! 🚀

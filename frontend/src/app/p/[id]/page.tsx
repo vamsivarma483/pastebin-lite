@@ -72,6 +72,17 @@ export default function ViewPaste({ params }: { params: Promise<{ id: string }> 
       ? `${paste.remaining_views} remaining`
       : 'Unlimited';
 
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+
+  const handleShareLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      alert('Share link copied to clipboard!');
+    } catch {
+      alert('Failed to copy link. Please copy manually: ' + shareUrl);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="max-w-2xl mx-auto">
@@ -96,6 +107,26 @@ export default function ViewPaste({ params }: { params: Promise<{ id: string }> 
                 <p className="text-gray-600 dark:text-gray-400">Views:</p>
                 <p className="font-semibold text-gray-900 dark:text-white">{remainingViews}</p>
               </div>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Share Link:
+            </label>
+            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded border border-gray-200 dark:border-gray-600 flex items-center gap-2">
+              <input
+                type="text"
+                readOnly
+                value={shareUrl}
+                className="flex-1 bg-transparent text-gray-900 dark:text-gray-100 text-sm overflow-auto"
+              />
+              <button
+                onClick={handleShareLink}
+                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg whitespace-nowrap"
+              >
+                Copy Link
+              </button>
             </div>
           </div>
 
