@@ -3,14 +3,16 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "env": {
-    "DATABASE_URL": "@database_url",
     "NODE_ENV": "production",
     "TEST_MODE": "0"
   },
   "builds": [
     {
       "src": "dist/main.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "maxLambdaSize": "15mb"
+      }
     }
   ],
   "routes": [
