@@ -14,32 +14,56 @@ git commit -m "Add share link functionality"
 git push origin main
 ```
 
-## Step 2: Set Up Vercel Postgres Database
+## Step 2: Set Up Database (Choose ONE Option)
+
+### Option A: Neon (Recommended - Free Tier Available)
+
+**Why Neon?** Serverless PostgreSQL, free tier, automatic scaling, no infrastructure management
+
+1. Go to https://neon.tech and sign up (free tier available)
+2. Create a new project:
+   - Name: `pastebin-lite`
+   - Region: Choose closest to you
+3. Get your connection string:
+   - Go to **Dashboard** → Your Project → **Connection String**
+   - Copy the connection string (looks like: `postgresql://user:password@ep-xxxx.neon.tech/pastebin_lite?sslmode=require`)
+   - **Keep this safe - you'll need it for Vercel environment variables**
+
+### Option B: Vercel Postgres (Alternative)
 
 1. Go to https://vercel.com/dashboard
-2. Click on **Storage** in the left sidebar
+2. Click **Storage** in the left sidebar
 3. Click **Create Database** → **Postgres**
 4. Name it: `pastebin-lite`
 5. Select your region
 6. Click **Create**
-7. Copy the connection string (you'll need this for environment variables)
+7. Copy the connection string and keep it safe
+
+### Option C: Other PostgreSQL Providers
+- Railway: https://railway.app
+- Supabase: https://supabase.com
+- AWS RDS
+- DigitalOcean
+
+**For this guide, we recommend Neon** ✅
 
 ## Step 3: Deploy Backend
 
 1. Go to https://vercel.com/dashboard
 2. Click **Add New...** → **Project**
 3. Import your GitHub repository: `vamsivarma483/pastebin-lite`
-4. Select **NestJS** as the framework
-5. Configure the project:
+4. Configure the project:
    - **Root Directory**: `backend`
    - **Build Command**: `npm run build`
    - **Output Directory**: `dist`
-6. Add environment variables:
-   - `DATABASE_URL`: Paste your Vercel Postgres connection string
+5. Add environment variables:
+   - `DATABASE_URL`: [Your connection string from Step 2 - Neon, Vercel Postgres, etc.]
    - `NODE_ENV`: `production`
    - `TEST_MODE`: `0`
    - `FRONTEND_URL`: `https://your-frontend-domain.vercel.app` (set after deploying frontend)
-7. Click **Deploy**
+6. Click **Deploy**
+
+**Note:** If you get database migration errors on first deploy, that's normal. See "Run Database Migrations" section below.
 
 ## Step 4: Deploy Frontend
 
@@ -62,19 +86,53 @@ After the frontend is deployed:
 
 ## Step 6: Run Database Migrations
 
-After the backend is deployed, run Prisma migrations:
+After the backend is deployed, you need to run Prisma migrations to create tables in your database.
+
+### Option A: Using Vercel CLI
+
+```bash
+# Install Vercel CLI if you don't have it
+npm i -g vercel
+
+# Pull environment variables from Vercel
+cd backend
+vercel link  # Link to your backend project
+vercel env pull
+
+# Run migrations
+npx prisma migrate deploy
+```
+
+### Option B: Manual (if CLI doesn't work)
+
+```bash
+# Get DATABASE_URL from Vercel backend project settings
+# Set it locally:
+export DATABASE_URL="your-connection-string-here"
+
+# Run migrations
+cd backend
+npx prisma migrate deploy
+```
+
+### Option C: Push Schema (if no migrations exist yet)
 
 ```bash
 cd backend
-npx prisma migrate deploy --skip-generate
+npx prisma db push
 ```
 
-Or you can use the Vercel CLI:
-
-```bash
-npx vercel env pull .env.production.local
-npx prisma migrate deploy
+**Expected output:**
 ```
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database at your-db-server
+
+1 migration found in prisma/migrations
+✔ Successfully applied 1 migration(s)
+```
+
+If you see errors about "Paste" table already existing, that's fine - it means the schema is already set up!
 
 ## Monitoring & Testing
 
@@ -105,11 +163,19 @@ curl -X POST https://your-backend-domain.vercel.app/api/pastes \
 
 ### Backend (Vercel)
 ```
-DATABASE_URL=postgresql://...
+# Required
+DATABASE_URL=postgresql://user:password@your-db-server/pastebin_lite?sslmode=require
+
+# Optional but recommended
 NODE_ENV=production
 TEST_MODE=0
 FRONTEND_URL=https://your-frontend-url.vercel.app
 ```
+
+**Database URL Examples:**
+- Neon: `postgresql://user:passwordXX@ep-xxxxxxx.neon.tech/pastebin_lite?sslmode=require`
+- Vercel Postgres: `postgresql://default:password@region.postgres.vercel-storage.com/pastebin_lite`
+- Railway: `postgresql://user:password@containers-us-west-xx.railway.app:xxxx/pastebin_lite`
 
 ### Frontend (Vercel)
 ```
